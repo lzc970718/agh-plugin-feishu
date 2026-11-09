@@ -1,0 +1,46 @@
+{
+  "id": "feishu",
+  "displayName": "飞书",
+  "version": "0.1.3",
+  "connection": {
+    "modes": [
+      "websocket"
+    ],
+    "default": "websocket"
+  },
+  "capabilities": {
+    "edit": false,
+    "card": false,
+    "thread": false,
+    "attachment": true,
+    "reactions": false,
+    "typing": false,
+    "voice": true
+  },
+  "credentials": {
+    "required": [
+      "appId",
+      "appSecret"
+    ],
+    "optional": [],
+    "exposes": []
+  },
+  "limits": {
+    "textChars": 8000,
+    "cardBytes": 30000,
+    "editWindowMs": 0,
+    "rate": {
+      "perChatPerMin": 20,
+      "perAccountPerSec": 10
+    }
+  },
+  "events": {
+    "supported": [
+      "message"
+    ]
+  },
+  "displayNames": {
+    "en": "Feishu",
+    "zh-CN": "飞书"
+  }
+}

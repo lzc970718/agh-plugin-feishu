@@ -1,0 +1,11 @@
+node_modules/
+*.tgz
+*.log
+.coverage/
+coverage/
+.backups/
+tsconfig.local.json
+.env
+.env.*
+*.pem
+*.key

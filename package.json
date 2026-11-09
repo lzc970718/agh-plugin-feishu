@@ -1,0 +1,451 @@
+{
+  "name": "@agnes/channel-feishu",
+  "version": "0.1.3",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24.10",
+    "agh": ">=0.1.0"
+  },
+  "exports": "./dist/index.mjs",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "PROVENANCE.md",
+    "VALIDATION.md",
+    "assets",
+    "README.zh-CN.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "prepareSdk": "node prepare.mjs",
+    "typecheck": "tsc -p tsconfig.local.json",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "@larksuiteoapi/node-sdk": "1.76.0",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0",
+    "tsx": "4.23.13",
+    "@types/node": "26.4.1"
+  },
+  "agnes": {
+    "hostProvidedExternals": {
+      "@agnes/plugin-runtime/channel-contract": "0.0.0",
+      "@agnes/protocol": "0.0.0"
+    },
+    "plugins": [
+      {
+        "id": "ext:agnes.channel-feishu",
+        "export": "main",
+        "apiRange": "^5.8.0",
+        "runtime": "in-process",
+        "default": true,
+        "inject": [
+          "profileRuntime",
+          "services",
+          "providers"
+        ],
+        "configSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "instances"
+          ],
+          "properties": {
+            "instances": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "workspace",
+                  "agent",
+                  "credentialRefs",
+                  "allowFrom",
+                  "requireMention"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{0,47}$"
+                  },
+                  "workspace": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096
+                  },
+                  "agent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512,
+                    "pattern": "^[a-zA-Z0-9@_./#-]+$"
+                  },
+                  "credentialRefs": {
+                    "type": "object",
+                    "maxProperties": 32,
+                    "additionalProperties": {
+                      "type": "string",
+                      "pattern": "^secret://[a-z0-9-]+/[a-z0-9._-]+$",
+                      "maxLength": 256
+                    }
+                  },
+                  "allowFrom": {
+                    "type": "array",
+                    "maxItems": 1024,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    }
+                  },
+                  "requireMention": {
+                    "type": "boolean"
+                  },
+                  "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "config": {
+          "instances": []
+        },
+        "configReload": "live",
+        "metadata": {
+          "displayName": "Feishu channel",
+          "summary": "Feishu and Lark WebSocket channel using the AGH channel bridge.",
+          "description": "Feishu and Lark WebSocket channel using the AGH channel bridge. Requires the host-owned channel bridge and Extension API ^5.8.0.",
+          "locales": {
+            "zh-CN": {
+              "displayName": "飞书渠道",
+              "summary": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。",
+              "description": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。 需要宿主统一渠道桥与 Extension API ^5.8.0。"
+            }
+          }
+        },
+        "capabilities": {
+          "network": [
+            "*.feishu.cn",
+            "*.larksuite.com"
+          ],
+          "secrets": [
+            "secret://feishu/*",
+            "secret://generic/*"
+          ],
+          "store": true,
+          "managedServices": [
+            {
+              "id": "channel",
+              "scope": "profile",
+              "artifact": {
+                "kind": "in-process"
+              },
+              "listeners": [],
+              "healthPath": "/health",
+              "startupTimeoutMs": 30000,
+              "shutdownTimeoutMs": 5000,
+              "apiVersion": "1.0.0",
+              "requires": []
+            }
+          ],
+          "services": [
+            {
+              "name": "channel.status",
+              "scope": "profile",
+              "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 65536,
+              "kind": "query"
+            },
+            {
+              "name": "channel.configuration",
+              "scope": "profile",
+              "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 65536,
+              "kind": "query"
+            },
+            {
+              "name": "channel.check",
+              "scope": "profile",
+              "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 65536,
+              "kind": "query"
+            },
+            {
+              "name": "channel.retry",
+              "scope": "profile",
+              "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 65536,
+              "kind": "effect",
+              "effectPolicy": {
+                "isDestructive": true,
+                "isOpenWorld": true,
+                "replay": "never",
+                "requiresApproval": "always",
+                "approvalScopes": []
+              }
+            },
+            {
+              "name": "channel.reconcile",
+              "scope": "profile",
+              "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 65536,
+              "kind": "effect",
+              "effectPolicy": {
+                "isDestructive": true,
+                "isOpenWorld": true,
+                "replay": "never",
+                "requiresApproval": "always",
+                "approvalScopes": []
+              }
+            },
+            {
+              "name": "channel.configure",
+              "scope": "profile",
+              "inputSchema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "instances"
+                ],
+                "properties": {
+                  "instances": {
+                    "type": "array",
+                    "maxItems": 32,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "id",
+                        "workspace",
+                        "agent",
+                        "credentialRefs",
+                        "allowFrom",
+                        "requireMention"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{0,47}$"
+                        },
+                        "workspace": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 4096
+                        },
+                        "agent": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 512,
+                          "pattern": "^[a-zA-Z0-9@_./#-]+$"
+                        },
+                        "credentialRefs": {
+                          "type": "object",
+                          "maxProperties": 32,
+                          "additionalProperties": {
+                            "type": "string",
+                            "pattern": "^secret://[a-z0-9-]+/[a-z0-9._-]+$",
+                            "maxLength": 256
+                          }
+                        },
+                        "allowFrom": {
+                          "type": "array",
+                          "maxItems": 1024,
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          }
+                        },
+                        "requireMention": {
+                          "type": "boolean"
+                        },
+                        "config": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 65536,
+              "kind": "effect",
+              "effectPolicy": {
+                "isDestructive": true,
+                "isOpenWorld": true,
+                "replay": "never",
+                "requiresApproval": "always",
+                "approvalScopes": []
+              }
+            },
+            {
+              "name": "channel.session",
+              "scope": "session",
+              "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 524288,
+              "kind": "query"
+            },
+            {
+              "name": "channel.bind",
+              "scope": "session",
+              "inputSchema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "instanceId": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{32}$"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "instanceId",
+                  "targetId",
+                  "expectedVersion"
+                ]
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 524288,
+              "kind": "effect",
+              "effectPolicy": {
+                "isDestructive": true,
+                "isOpenWorld": true,
+                "replay": "idempotent",
+                "requiresApproval": "never",
+                "approvalScopes": []
+              }
+            },
+            {
+              "name": "channel.unbind",
+              "scope": "session",
+              "inputSchema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "instanceId": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{32}$"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "instanceId",
+                  "expectedVersion"
+                ]
+              },
+              "outputSchema": {},
+              "timeoutMs": 30000,
+              "maxResultBytes": 524288,
+              "kind": "effect",
+              "effectPolicy": {
+                "isDestructive": true,
+                "isOpenWorld": true,
+                "replay": "idempotent",
+                "requiresApproval": "never",
+                "approvalScopes": []
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "provides": [
+      "service"
+    ],
+    "metadata": {
+      "displayName": "Feishu channel",
+      "summary": "Feishu and Lark WebSocket channel using the AGH channel bridge.",
+      "description": "Feishu and Lark WebSocket channel using the AGH channel bridge. Requires the host-owned channel bridge and Extension API ^5.8.0.",
+      "locales": {
+        "zh-CN": {
+          "displayName": "飞书渠道",
+          "summary": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。",
+          "description": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。 需要宿主统一渠道桥与 Extension API ^5.8.0。"
+        }
+      }
+    }
+  },
+  "description": "Feishu and Lark WebSocket channel using the AGH channel bridge.",
+  "homepage": "https://github.com/lzc970718/agh-plugin-feishu#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lzc970718/agh-plugin-feishu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lzc970718/agh-plugin-feishu/issues"
+  },
+  "keywords": [
+    "agh-plugin",
+    "agnes-harness",
+    "channel",
+    "im",
+    "feishu"
+  ],
+  "author": {
+    "name": "JoyfulDoge",
+    "url": "https://github.com/lzc970718"
+  }
+}
