@@ -11,9 +11,21 @@ export const payload = (type = 'text', content: unknown = { text: 'hello' }, gro
     mentions: [],
   },
 })
+export const cardClick = (value: unknown = { id: 'pick:1', t: 'dm' }, chat = 'oc_chat') => ({
+  schema: '2.0',
+  event_type: 'card.action.trigger',
+  event_id: 'ev_click',
+  create_time: '1760000000000',
+  operator: { open_id: 'ou_user' },
+  token: 'c-token',
+  action: { tag: 'button', value },
+  context: { open_message_id: 'om_card', open_chat_id: chat },
+})
 export class FakeGateway implements Gateway {
   ready = false
   handler: ((raw: unknown) => Promise<void>) | undefined
+  cardHandler: ((raw: unknown) => Promise<void>) | undefined
+  sentCards: { chatId: string; card: Record<string, unknown>; uuid: string }[] = []
   downloads = new Map<string, { bytes: Uint8Array; mime: string } | Error>()
   sent: { chatId: string; text: string; uuid: string }[] = []
   async start(
@@ -21,10 +33,12 @@ export class FakeGateway implements Gateway {
     _domain: Domain,
     handler: (raw: unknown) => Promise<void>,
     signal: AbortSignal,
+    cardHandler: (raw: unknown) => Promise<void> = async () => {},
   ) {
     signal.throwIfAborted()
     this.ready = true
     this.handler = handler
+    this.cardHandler = cardHandler
     return { botId: 'ou_bot' }
   }
   async stop() {
@@ -39,6 +53,13 @@ export class FakeGateway implements Gateway {
   async send(chatId: string, text: string, uuid: string) {
     this.sent.push({ chatId, text, uuid })
     return 'om_sent_' + this.sent.length
+  }
+  async sendCard(chatId: string, card: Record<string, unknown>, uuid: string) {
+    this.sentCards.push({ chatId, card, uuid })
+    return 'om_card_' + this.sentCards.length
+  }
+  async emitCard(raw: unknown) {
+    await this.cardHandler?.(raw)
   }
   async emit(raw: unknown) {
     await this.handler?.(raw)

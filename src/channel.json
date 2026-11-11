@@ -10,7 +10,7 @@
   },
   "capabilities": {
     "edit": false,
-    "card": false,
+    "card": true,
     "thread": false,
     "attachment": true,
     "reactions": false,
@@ -36,7 +36,8 @@
   },
   "events": {
     "supported": [
-      "message"
+      "message",
+      "cardAction"
     ]
   },
   "displayNames": {

@@ -19,6 +19,7 @@ export class RealGateway implements Gateway {
     domain: Domain,
     onMessage: (raw: unknown) => Promise<void>,
     signal: AbortSignal,
+    onCardAction: (raw: unknown) => Promise<void>,
   ) {
     await this.stop()
     signal.throwIfAborted()
@@ -72,10 +73,16 @@ export class RealGateway implements Gateway {
             },
           })
           void this.socket
-            .start((raw) => {
-              if (version === this.version && !this.abort.signal.aborted) return onMessage(raw)
-              return Promise.resolve()
-            })
+            .start(
+              (raw) => {
+                if (version === this.version && !this.abort.signal.aborted) return onMessage(raw)
+                return Promise.resolve()
+              },
+              (raw) => {
+                if (version === this.version && !this.abort.signal.aborted) return onCardAction(raw)
+                return Promise.resolve()
+              },
+            )
             .catch(fail)
         } catch {
           fail()
@@ -230,12 +237,19 @@ export class RealGateway implements Gateway {
       mime: response.headers.get('content-type')?.split(';')[0]?.trim() || media.mime,
     }
   }
-  async send(chatId: string, text: string, uuid: string) {
+  send(chatId: string, markdown: string, uuid: string) {
+    const content = { zh_cn: { content: [[{ tag: 'md', text: markdown }]] } }
+    return this.create(chatId, 'post', content, uuid)
+  }
+  sendCard(chatId: string, card: Record<string, unknown>, uuid: string) {
+    return this.create(chatId, 'interactive', card, uuid)
+  }
+  private async create(chatId: string, type: 'post' | 'interactive', content: unknown, uuid: string) {
     if (!this.ready) throw new FeishuError('NOT_CONNECTED')
     const result = await this.json('/open-apis/im/v1/messages?receive_id_type=chat_id', 'POST', {
       receive_id: chatId,
-      msg_type: 'text',
-      content: JSON.stringify({ text }),
+      msg_type: type,
+      content: JSON.stringify(content),
       uuid,
     })
     const data = result.data as { message_id?: unknown } | undefined

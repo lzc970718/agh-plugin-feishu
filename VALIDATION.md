@@ -39,3 +39,21 @@ These checks do not certify a real Feishu/Lark tenant, app permissions, actual m
 - Unit tests: 32 passed. Legacy 5.7 error-message assertions in DingTalk/Feishu were aligned with the existing 5.8 implementation requirement.
 - Release files are explicitly staged; generated SDK paths, node_modules, backup directories, local logs and prior archives are excluded.
 - This release changes distribution metadata, portable development configuration, documentation and version stamps; it does not add platform capabilities or establish new live-account/macOS/Linux acceptance.
+
+## Quoted replies, Markdown and cards (unreleased)
+
+Deterministic checks added (fake gateway, no credential):
+
+- `parent_id` becomes `quotedMessageId`; absent or malformed ids are omitted.
+- Text is sent as `msg_type: post` with a single `md` element and keeps the per-part `uuid`.
+- Card blocks are sent as `msg_type: interactive` schema 2.0 cards; each button callback value is `{ id, t, c }` with `c` the chat the card was sent to (`slot:<requestSeq>:<id>` for bound-session slot cards). Cards above `cardBytes` are refused.
+- `card.action.trigger` (SDK-flattened and nested shapes) becomes a `cardAction` event with `cardBizId` equal to the card's message id; a click is accepted only when `c` equals the clicked chat (a forwarded card, a value without `c` and a bare-string value are dropped with a warning, so a card never answers another chat's request); the chat is confirmed, with the observed chat type, else `t` for a chat the plugin has not seen; the long-connection callback is answered with `{}` and the card is not changed.
+- `onSlotAction` parses `slot:<requestSeq>:<actionId>`. Approval and table blocks keep their previous text rendering now that the platform no longer degrades them.
+
+Real-tenant checks still open:
+
+- Enable the card callback for the app in the Feishu/Lark developer console with long-connection delivery, and publish the app version. Without it clicks never arrive.
+- Confirm a post `md` message renders bold, lists, code and links in a DM and a group, and that quoted-reply `parent_id` arrives for p2p and group messages.
+- Confirm a schema 2.0 card with a header-less layout and callback buttons renders, that a click reaches AGH, and that the `{}` reply shows no error toast and leaves the card unchanged.
+- Confirm the callback `context.open_message_id` equals the `message_id` returned by the send call, and check click behavior after a reconnect and after clicking an already-answered card.
+- Check the 30000-byte card limit and rate limits with real traffic.

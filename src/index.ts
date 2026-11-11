@@ -29,7 +29,7 @@ export const feishuProvider: ChannelProvider = {
 export const main = {
   inject: ['profileRuntime', 'services', 'providers'],
   apply(ctx: Pick<PluginContextFacets, 'profileRuntime'>, config: Partial<ChannelConfiguration> = {}) {
-    if (!ctx.profileRuntime.registerChannel) throw new Error('Feishu requires AGH channel bridge API 5.8.0')
+    if (!ctx.profileRuntime.registerChannel) throw new Error('Feishu requires AGH channel bridge API 5.13.0')
     ctx.profileRuntime.registerChannel(feishuProvider, { instances: config.instances ?? [] })
   },
 }

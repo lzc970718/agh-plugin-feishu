@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { normalize, safeName } from '../src/events.js'
-import { payload } from './helpers.js'
+import { normalize, normalizeCardAction, safeName } from '../src/events.js'
+import { cardClick, payload } from './helpers.js'
 describe('Feishu event normalization', () => {
   it.each(['text', 'image', 'file', 'audio', 'media', 'sticker', 'post'])(
     'normalizes %s and preserves stable identifiers',
@@ -84,5 +84,37 @@ describe('Feishu event normalization', () => {
     )!
     expect(result.media).toHaveLength(51)
     expect(result.event.text).toBe('safe')
+  })
+  it('carries the quoted message id from parent_id and omits it otherwise', () => {
+    const quoted = payload()
+    ;(quoted.message as Record<string, unknown>).parent_id = 'om_parent'
+    expect(normalize(quoted, 'cli_app', 'ou_bot')!.event).toMatchObject({ quotedMessageId: 'om_parent' })
+    expect(normalize(payload(), 'cli_app', 'ou_bot')!.event).not.toHaveProperty('quotedMessageId')
+    ;(quoted.message as Record<string, unknown>).parent_id = 'bad\u0000id'
+    expect(normalize(quoted, 'cli_app', 'ou_bot')!.event).not.toHaveProperty('quotedMessageId')
+  })
+  it('normalizes card.action.trigger in the SDK-flattened and the nested shape', () => {
+    const expected = {
+      chatId: 'oc_chat',
+      messageId: 'om_card',
+      userId: 'ou_user',
+      value: 'pick:1',
+      chatType: 'dm',
+      eventId: 'ev_click',
+    }
+    expect(normalizeCardAction(cardClick())).toMatchObject(expected)
+    const flat = cardClick()
+    expect(
+      normalizeCardAction({
+        schema: '2.0',
+        header: { event_id: 'ev_click', event_type: 'card.action.trigger', create_time: '1760000000000' },
+        event: { operator: flat.operator, action: flat.action, context: flat.context },
+      }),
+    ).toMatchObject(expected)
+    expect(normalizeCardAction(cardClick({ id: 'x', t: 'dm', c: 'oc_chat' }))).toMatchObject({ cardChatId: 'oc_chat' })
+    expect(normalizeCardAction(cardClick({ id: 'x', t: 'dm', c: 'a'.repeat(300) }))).not.toHaveProperty('cardChatId')
+  })
+  it.each([{}, { id: '' }, { id: 5 }, 7, null, 'plain-id'])('drops a card click with an unusable value %j', (value) => {
+    expect(normalizeCardAction(cardClick(value))).toBeNull()
   })
 })

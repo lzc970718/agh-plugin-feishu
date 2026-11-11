@@ -1,4 +1,4 @@
-import { queuedMessageHandler } from '../src/sdk-socket.js'
+import { queuedMessageHandler, sdkHandlers } from '../src/sdk-socket.js'
 import { describe, it, expect, vi } from 'vitest'
 import { RealGateway } from '../src/gateway.js'
 import type { SocketFactory, SocketOptions } from '../src/sdk-socket.js'
@@ -15,12 +15,13 @@ function fixture(
   const calls: { url: string; init: RequestInit }[] = []
   let socketOptions!: SocketOptions
   const close = vi.fn()
-  let handler: unknown
+  let cardCallback: ((raw: unknown) => Promise<void>) | undefined
+  const cards: unknown[] = []
   const socketFactory: SocketFactory = (value) => {
     socketOptions = value
     return {
-      start: async (callback) => {
-        handler = callback
+      start: async (_callback, onCard) => {
+        cardCallback = onCard
         if (!options.notReady) value.onReady()
       },
       close,
@@ -60,9 +61,14 @@ function fixture(
       options.domain ?? 'feishu',
       async () => {},
       stop.signal,
+      async (raw) => {
+        cards.push(raw)
+      },
     )
   return {
     gateway,
+    cards,
+    click: (raw: unknown) => cardCallback?.(raw),
     stop,
     start,
     calls,
@@ -95,11 +101,9 @@ describe('Feishu HTTP and official WS lifecycle boundary', () => {
           ),
         ).toBe(true)
         expect(await f.gateway.send('oc_chat', 'hello', 'stable-uuid')).toBe('om_sent')
-        expect(JSON.parse(f.calls.at(-1)!.init.body as string)).toMatchObject({
-          receive_id: 'oc_chat',
-          uuid: 'stable-uuid',
-          content: '{"text":"hello"}',
-        })
+        const sent = JSON.parse(f.calls.at(-1)!.init.body as string)
+        expect(sent).toMatchObject({ receive_id: 'oc_chat', uuid: 'stable-uuid', msg_type: 'post' })
+        expect(JSON.parse(sent.content)).toEqual({ zh_cn: { content: [[{ tag: 'md', text: 'hello' }]] } })
       } finally {
         await f.gateway.stop()
       }
@@ -202,6 +206,7 @@ it('clears the handshake deadline even if socket construction throws synchronous
         'feishu',
         async () => {},
         new AbortController().signal,
+        async () => {},
       ),
     ).rejects.toThrow('Feishu CONNECT')
     expect(vi.getTimerCount()).toBe(0)
@@ -237,4 +242,36 @@ it('does not acknowledge synchronous queue refusal and absorbs asynchronous proc
   await expect(
     queuedMessageHandler(() => Promise.reject(new Error('synthetic secret')))({}),
   ).resolves.toEqual({})
+})
+
+it('sends an interactive card as msg_type interactive with the card JSON as content', async () => {
+  const f = fixture()
+  await f.start()
+  const card = { schema: '2.0', body: { elements: [{ tag: 'markdown', content: 'hi' }] } }
+  expect(await f.gateway.sendCard('oc_chat', card, 'card-uuid')).toBe('om_sent')
+  const sent = JSON.parse(f.calls.at(-1)!.init.body as string)
+  expect(sent).toMatchObject({ receive_id: 'oc_chat', uuid: 'card-uuid', msg_type: 'interactive' })
+  expect(JSON.parse(sent.content)).toEqual(card)
+  await f.gateway.stop()
+})
+it('forwards card clicks to the card handler only while the connection is current', async () => {
+  const f = fixture()
+  await f.start()
+  await f.click({ context: { open_message_id: 'om_card' } })
+  expect(f.cards).toEqual([{ context: { open_message_id: 'om_card' } }])
+  await f.gateway.stop()
+  await f.click({ late: true })
+  expect(f.cards).toHaveLength(1)
+})
+it('registers message and card.action.trigger handlers and answers a card callback without changing the card', async () => {
+  const seen: unknown[] = []
+  const handlers = sdkHandlers(
+    async () => {},
+    async (raw) => {
+      seen.push(raw)
+    },
+  )
+  expect(Object.keys(handlers).sort()).toEqual(['card.action.trigger', 'im.message.receive_v1'])
+  await expect(handlers['card.action.trigger']({ operator: {} })).resolves.toEqual({})
+  expect(seen).toEqual([{ operator: {} }])
 })
