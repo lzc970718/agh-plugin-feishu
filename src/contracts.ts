@@ -8,8 +8,10 @@ export interface Gateway {
     domain: Domain,
     onMessage: (raw: unknown) => Promise<void>,
     signal: AbortSignal,
+    onCardAction: (raw: unknown) => Promise<void>,
   ): Promise<{ botId: string }>
   stop(): Promise<void>
   download(messageId: string, media: Media, maxBytes: number): Promise<{ bytes: Uint8Array; mime: string }>
-  send(chatId: string, text: string, uuid: string): Promise<string>
+  send(chatId: string, markdown: string, uuid: string): Promise<string>
+  sendCard(chatId: string, card: Record<string, unknown>, uuid: string): Promise<string>
 }

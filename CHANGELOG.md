@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Quoted replies: the quoted message id (`parent_id`) is reported as `quotedMessageId`.
+- Markdown: text is sent as a `post` message with one `md` element instead of plain text.
+- Cards: card blocks are sent as interactive cards with buttons; clicks arrive as `card.action.trigger` over the long connection and are reported as card actions. Bound-session slot cards route through `onSlotAction`.
+- Declares `card` capability and the `cardAction` event; requires Extension API ^5.13.0. The Feishu app must enable the card callback with long-connection delivery.
+
 ## 0.1.3 — 2026-11-09
 
 - Prepare the independent Feishu channel for Git-based AGH marketplace installation.

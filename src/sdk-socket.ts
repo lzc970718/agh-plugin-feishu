@@ -9,7 +9,7 @@ export type SocketOptions = {
   onReconnected: () => void
 }
 export interface Socket {
-  start(handler: (raw: unknown) => Promise<void>): Promise<void>
+  start(handler: (raw: unknown) => Promise<void>, onCardAction: (raw: unknown) => Promise<void>): Promise<void>
   close(): void
 }
 export type SocketFactory = (options: SocketOptions) => Socket
@@ -28,13 +28,20 @@ export const sdkSocket: SocketFactory = (options) => {
     onReconnected: options.onReconnected,
   })
   return {
-    start: (handler) =>
-      ws.start({
-        eventDispatcher: new EventDispatcher({}).register({
-          'im.message.receive_v1': queuedMessageHandler(handler),
-        }),
-      }),
+    start: (handler, onCardAction) =>
+      ws.start({ eventDispatcher: new EventDispatcher({}).register(sdkHandlers(handler, onCardAction)) }),
     close: () => ws.close({ force: true }),
+  }
+}
+
+/** `card.action.trigger` arrives on the same long connection as an event; the `{}` reply leaves the card unchanged. */
+export function sdkHandlers(
+  handler: (raw: unknown) => Promise<void>,
+  onCardAction: (raw: unknown) => Promise<void>,
+) {
+  return {
+    'im.message.receive_v1': queuedMessageHandler(handler),
+    'card.action.trigger': queuedMessageHandler(onCardAction),
   }
 }
 

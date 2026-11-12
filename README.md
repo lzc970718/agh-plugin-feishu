@@ -8,7 +8,7 @@ English | [简体中文](README.zh-CN.md)
 
 ## Requirements
 
-AGH contract version >=0.1.0 **with the unified channel bridge and Extension API ^5.8.0**, and Node.js >=24.10. The AGH contract version alone does not establish channel-bridge support; the plugin API range is checked during installation. This is an independent plugin, not a bundled Assistant runtime.
+AGH contract version >=0.1.0 **with the unified channel bridge and Extension API ^5.13.0**, and Node.js >=24.10. The AGH contract version alone does not establish channel-bridge support; the plugin API range is checked during installation. This is an independent plugin, not a bundled Assistant runtime.
 
 ## Install
 
@@ -22,14 +22,14 @@ Tags resolve to immutable Git commits. Release commits include the complete `dis
 
 ## Connect a conversation
 
-Create and publish a Feishu/Lark application with a bot, enable the message-received event over a persistent connection, and grant the required messaging/resource permissions. Save app ID and app secret in AGH credentials. Select the correct Feishu/Lark region.
+Create and publish a Feishu/Lark application with a bot, enable the message-received event over a persistent connection, enable the card callback (`card.action.trigger`, "card interaction") with the same persistent-connection delivery so button clicks reach AGH, and grant the required messaging/resource permissions. Save app ID and app secret in AGH credentials. Select the correct Feishu/Lark region.
 
 1. Create an AGH conversation, then choose **Channels → Feishu** beside the composer.
 2. Select saved credentials and provider options, save the connection and complete native approval. Instance identity, workspace and agent follow the conversation.
 3. Send a new message to the configured bot (mention it in supported groups), then refresh the observed chat targets in AGH.
 4. Select and explicitly confirm the target. Only new messages after binding are synchronized. Manage, unbind or move connections from **Plugins → Channels**.
 
-The host owns authorization, credentials, session routing, lifecycle, bindings and delivery receipts. AGH-originated user text is forwarded with a source marker by the bot, not impersonated as a platform user. Native approvals stay in AGH. See the [Chinese guide](README.zh-CN.md) for platform setup, attachment limits, recovery and supported features.
+The host owns authorization, credentials, session routing, lifecycle, bindings and delivery receipts. AGH-originated user text is forwarded with a source marker by the bot, not impersonated as a platform user. Native approvals stay in AGH. Replies to a quoted message carry the quoted message id, text is sent as Markdown, and messages with buttons are sent as interactive cards. See the [Chinese guide](README.zh-CN.md) for platform setup, attachment limits, recovery and supported features.
 
 ## Development
 

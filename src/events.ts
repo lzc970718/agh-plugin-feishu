@@ -17,6 +17,13 @@ export function required(value: unknown, max = 256): string {
     throw new Error('Invalid Feishu field')
   return value
 }
+function optional(value: unknown, max: number): string | undefined {
+  try {
+    return required(value, max)
+  } catch {
+    return undefined
+  }
+}
 export function safeName(value: unknown, fallback: string): string {
   const source = typeof value === 'string' ? value.replaceAll('\\', '/').split('/').at(-1) : undefined
   return (
@@ -121,6 +128,7 @@ export function normalize(input: unknown, appId: string, botId: string): Incomin
   }
   const time = Number(message.create_time)
   if (!Number.isFinite(time) || time < 0 || time > 8.64e15) throw new Error('Invalid Feishu time')
+  const quoted = optional(message.parent_id, 512)
   return {
     event: {
       kind: 'message',
@@ -133,8 +141,53 @@ export function normalize(input: unknown, appId: string, botId: string): Incomin
       text: strip(texts.join('\n')).trim(),
       attachments: [],
       mentions: { bot: botMentions.length > 0, replyToBot: false, quoteBot: false },
+      ...(quoted ? { quotedMessageId: quoted } : {}),
     },
     media,
+  }
+}
+export type CardClick = {
+  eventId: string
+  chatId: string
+  messageId: string
+  userId: string
+  value: string
+  chatType?: 'dm' | 'group'
+  cardChatId?: string
+  at: string
+}
+/**
+ * Accepts the SDK-flattened `card.action.trigger` event (header and event fields at one level) and the
+ * nested `{ header, event }` form. Our buttons carry `{ id, t, c }`; any other value shape is dropped.
+ */
+export function normalizeCardAction(input: unknown): CardClick | null {
+  const envelope = record(input),
+    data = record(envelope.event ?? envelope)
+  const header = envelope.header && typeof envelope.header === 'object' ? record(envelope.header) : {}
+  const context = data.context ? record(data.context) : {}
+  const messageId = optional(context.open_message_id ?? data.open_message_id, 512),
+    chatId = optional(context.open_chat_id ?? data.open_chat_id, 256),
+    userId = optional(record(data.operator ?? {}).open_id, 256)
+  if (!messageId || !chatId || !userId) return null
+  const raw = record(data.action ?? {}).value
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const object = raw as Record<string, unknown>,
+    value = optional(object.id, 1024),
+    chatType = object.t === 'dm' || object.t === 'group' ? object.t : undefined,
+    cardChatId = optional(object.c, 256)
+  if (!value) return null
+  const time = Number(data.create_time ?? envelope.create_time ?? header.create_time)
+  return {
+    eventId:
+      optional(data.event_id ?? envelope.event_id ?? header.event_id ?? data.token, 512) ??
+      `card:${messageId}:${userId}:${value}`,
+    chatId,
+    messageId,
+    userId,
+    value,
+    ...(chatType ? { chatType } : {}),
+    ...(cardChatId ? { cardChatId } : {}),
+    at: new Date(Number.isFinite(time) && time > 0 && time < 8.64e15 ? time : Date.now()).toISOString(),
   }
 }
 export const segment = (value: string) => createHash('sha256').update(value).digest('hex')

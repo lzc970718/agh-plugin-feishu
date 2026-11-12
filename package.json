@@ -42,7 +42,7 @@
       {
         "id": "ext:agnes.channel-feishu",
         "export": "main",
-        "apiRange": "^5.8.0",
+        "apiRange": "^5.13.0",
         "runtime": "in-process",
         "default": true,
         "inject": [
@@ -124,12 +124,12 @@
         "metadata": {
           "displayName": "Feishu channel",
           "summary": "Feishu and Lark WebSocket channel using the AGH channel bridge.",
-          "description": "Feishu and Lark WebSocket channel using the AGH channel bridge. Requires the host-owned channel bridge and Extension API ^5.8.0.",
+          "description": "Feishu and Lark WebSocket channel using the AGH channel bridge. Requires the host-owned channel bridge and Extension API ^5.13.0.",
           "locales": {
             "zh-CN": {
               "displayName": "飞书渠道",
               "summary": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。",
-              "description": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。 需要宿主统一渠道桥与 Extension API ^5.8.0。"
+              "description": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。 需要宿主统一渠道桥与 Extension API ^5.13.0。"
             }
           }
         },
@@ -418,12 +418,12 @@
     "metadata": {
       "displayName": "Feishu channel",
       "summary": "Feishu and Lark WebSocket channel using the AGH channel bridge.",
-      "description": "Feishu and Lark WebSocket channel using the AGH channel bridge. Requires the host-owned channel bridge and Extension API ^5.8.0.",
+      "description": "Feishu and Lark WebSocket channel using the AGH channel bridge. Requires the host-owned channel bridge and Extension API ^5.13.0.",
       "locales": {
         "zh-CN": {
           "displayName": "飞书渠道",
           "summary": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。",
-          "description": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。 需要宿主统一渠道桥与 Extension API ^5.8.0。"
+          "description": "独立飞书与 Lark 长连接渠道，使用 AGH 统一渠道桥接。 需要宿主统一渠道桥与 Extension API ^5.13.0。"
         }
       }
     }

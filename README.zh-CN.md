@@ -10,10 +10,10 @@
 agh plugins add git:https://github.com/lzc970718/agh-plugin-feishu.git#v0.1.3
 ```
 
-发行提交包含完整 `dist/` 和图标，不需要用户构建或安装依赖。最低 AGH 合同版本为 0.1.0，且必须支持统一渠道桥和 Extension API ^5.8.0。
+发行提交包含完整 `dist/` 和图标，不需要用户构建或安装依赖。最低 AGH 合同版本为 0.1.0，且必须支持统一渠道桥和 Extension API ^5.13.0。
 
 
-`@agnes/channel-feishu` 0.1.3，独立的平台适配器，需包含统一渠道桥、Extension API 5.8.0 的 AGH。通过官方 Node SDK 1.76.0 长连接接收消息，不需要公网入站端口。支持飞书，平台区域可选国际版 Lark。安装不会自动连接账号。
+`@agnes/channel-feishu` 0.1.3，独立的平台适配器，需包含统一渠道桥、Extension API 5.13.0 的 AGH。通过官方 Node SDK 1.76.0 长连接接收消息，不需要公网入站端口。支持飞书，平台区域可选国际版 Lark。安装不会自动连接账号。
 
 ## 安装
 
