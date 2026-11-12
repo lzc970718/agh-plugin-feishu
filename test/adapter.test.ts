@@ -29,7 +29,7 @@ describe('managed Feishu provider and adapter', () => {
     const registerChannel = vi.fn()
     main.apply({ profileRuntime: { registerChannel } } as never)
     expect(registerChannel).toHaveBeenCalledWith(feishuProvider, { instances: [] })
-    expect(() => main.apply({ profileRuntime: {} } as never)).toThrow('5.13.0')
+    expect(() => main.apply({ profileRuntime: {} } as never)).toThrow('5.15.0')
   })
   it.each([null, [], { appSecret: 'secret' }, { domain: 'https://attacker.invalid' }])(
     'refuses unsupported or sensitive instance config',
@@ -172,6 +172,7 @@ describe('managed Feishu provider and adapter', () => {
       expect(f.gateway.sent).toHaveLength(1)
       expect(f.gateway.sentCards[0]?.card).toEqual({
         schema: '2.0',
+        config: { update_multi: true },
         header: { title: { tag: 'plain_text', content: 'Pick one' } },
         body: {
           elements: [
@@ -260,26 +261,114 @@ describe('managed Feishu provider and adapter', () => {
       await f.adapter.disconnect()
     }
   })
-  it('keeps approval and table blocks as readable text now that cards are supported', async () => {
+  it('renders offered approval choices, decodes the actor and patches the settled card', async () => {
     const f = await connected()
     try {
       await f.gateway.emit(payload())
-      await f.adapter.send(
-        { chatId: 'oc_chat' },
-        {
-          blocks: [
-            { kind: 'approval', title: '需要审批', summary: 'run x', risk: 'always', options: [], decisionKey: 's1/abcdef123/2' },
-            { kind: 'table', title: 'T', columns: ['a', 'b'], rows: [['1', '2']] },
-          ],
-        },
-      )
-      expect(f.gateway.sentCards).toHaveLength(0)
-      expect(f.gateway.sent[0]?.text).toBe(
-        '【需要审批】\nrun x\n风险：always\n回复「同意 abcdef」或「拒绝 abcdef」\n\n【T】\na | b\n1 | 2',
-      )
-    } finally {
+      await expect(f.adapter.send({ chatId: 'oc_chat', accountId: 'wrong' }, { blocks: [{ kind: 'text', markdown: 'x' }] })).rejects.toThrow('TARGET_UNCONFIRMED')
+      const ref = await f.adapter.send({ chatId: 'oc_chat' }, { blocks: [{ kind: 'approval', title: '审批', summary: 'run x', risk: 'always', options: ['allow_once', 'allow_always', 'reject_once'], decisionKey: 's1/abcdef123/2' }] })
+      expect(ref.cardBizId).toBe(ref.messageId)
+      const card = f.gateway.sentCards[0]!.card as { body: { elements: Array<{ behaviors?: Array<{ value: { id: string; t: string; c: string } }>; text?: { content: string } }> } }
+      const buttons = card.body.elements.filter((e) => e.behaviors)
+      expect(buttons.map((e) => e.text?.content)).toEqual(['本次允许', '本会话允许', '本次拒绝'])
+      await f.gateway.emitCard({ ...cardClick(buttons[1]!.behaviors![0]!.value), app_id: 'wrong' })
+      expect(f.clicks).toHaveLength(0)
+      await f.gateway.emitCard(cardClick(buttons[1]!.behaviors![0]!.value))
+      expect(f.adapter.onApprovalAction(f.clicks[0]!)).toMatchObject({ decisionKey: 's1/abcdef123/2', verdict: 'allowed-session', approverCredential: { userId: 'ou_user', accountId: 'cli_synthetic' } })
+      await f.adapter.update(ref, { blocks: [{ kind: 'text', markdown: '已处理' }] })
+      expect(f.gateway.updatedCards[0]).toMatchObject({ messageId: ref.messageId, card: { config: { update_multi: true }, body: { elements: [{ content: '已处理' }] } } })
+      await expect(f.adapter.update({ chatId: 'other', messageId: ref.messageId }, { blocks: [{ kind: 'text', markdown: 'x' }] })).rejects.toThrow('TARGET_UNCONFIRMED')
+      await expect(f.adapter.update({ ...ref, cardBizId: 'wrong' }, { blocks: [{ kind: 'text', markdown: 'x' }] })).rejects.toThrow('EDIT_UNSUPPORTED')
+    } finally { await f.adapter.disconnect() }
+  })
+  it('renders and decodes native form submissions preserving the input bindings', async () => {
+    const f = await connected()
+    try {
+      await f.gateway.emit(payload())
+      await f.adapter.send({ chatId: 'oc_chat' }, { blocks: [{ kind: 'surface', sessionId: 's', surfaceId: 'ui', revision: 2, title: '问题', fallbackUrl: 'https://agh.invalid', form: { state: 'open', actionId: 'submit', submitLabel: '提交', fields: [
+        { kind: 'single', name: 'one', inputKey: 'form', binding: 'input', label: '单选', required: true, options: [{ value: 'a', label: 'A', description: '说明' }] },
+        { kind: 'multi', name: 'many', inputKey: 'form', binding: 'input', label: '多选', required: false, options: [{ value: 'b', label: 'B' }] },
+        { kind: 'text', name: 'text', inputKey: 'form', binding: 'input', label: '文本', required: true },
+      ] } }] })
+      const card = f.gateway.sentCards[0]!.card as { body: { elements: Array<{ tag: string; elements?: Array<{ tag: string; behaviors?: Array<{ value: unknown }> }> }> } }
+      const form = card.body.elements.find((e) => e.tag === 'form')!
+      expect(form.elements!.map((e) => e.tag)).toEqual(['select_static', 'multi_select_static', 'input', 'button'])
+      expect(form.elements![0]).toMatchObject({ name: 'f0', required: true, placeholder: { tag: 'plain_text', content: '单选' } })
+      expect(form.elements![1]).toMatchObject({ name: 'f1', required: false, placeholder: { tag: 'plain_text', content: '多选' } })
+      // JSON 2.0 selector schemas reject input-only label fields (Feishu API 230099).
+      expect(form.elements![0]).not.toHaveProperty('label')
+      expect(form.elements![1]).not.toHaveProperty('label')
+      expect(form.elements![2]).toHaveProperty('label.content', '文本')
+      const callback = cardClick(form.elements![3]!.behaviors![0]!.value)
+      Object.assign(callback.action, { form_value: { f0: 'a', f1: ['b'], f2: 'hello' } })
+      await f.gateway.emitCard(callback)
+      expect(f.adapter.onSurfaceAction(f.clicks[0]!)).toEqual({ sessionId: 's', surfaceId: 'ui', revision: 2, actionId: 'submit', input: { form: { one: 'a', many: ['b'], text: 'hello' } }, selection: {} })
+      await f.gateway.emitCard({ ...callback, context: { open_message_id: 'om_card', open_chat_id: 'other' } })
+      expect(f.clicks).toHaveLength(1)
+    } finally { await f.adapter.disconnect() }
+  })
+  it('bounds native text and guides longer answers to AGH', async () => {
+    const f = await connected()
+    try {
+      await f.gateway.emit(payload())
+      for (const [maxLength, expected, guidance] of [[8192, 1000, true], [undefined, 1000, true], [1000, 1000, false], [24, 24, false]] as const) {
+        await f.adapter.send({ chatId: 'oc_chat' }, { blocks: [{ kind: 'surface', sessionId: 's', surfaceId: 'ui', revision: 1, title: '问题', fallbackUrl: 'https://agh.invalid/auth', form: { state: 'open', actionId: 'submit', submitLabel: '提交', fields: [
+          { kind: 'text', name: 'answer', binding: 'input', label: '回答', required: true, ...(maxLength === undefined ? {} : { maxLength }) },
+        ] } }] })
+        const card = f.gateway.sentCards.at(-1)!.card as { body: { elements: Array<{ tag: string; elements?: Array<{ max_length?: number; behaviors?: Array<{ value: unknown }> }> }> } }
+        const form = card.body.elements.find((e) => e.tag === 'form')!
+        expect(form.elements![0]!.max_length).toBe(expected)
+        expect(JSON.stringify(card).includes('https://agh.invalid/auth')).toBe(guidance)
+        if (guidance) expect(JSON.stringify(card)).toContain('1000')
+        const callback = cardClick(form.elements![1]!.behaviors![0]!.value)
+        Object.assign(callback.action, { form_value: { f0: 'a'.repeat(1001) } })
+        await f.gateway.emitCard(callback)
+        expect(f.adapter.onSurfaceAction(f.clicks.at(-1)!)?.input).toEqual({ answer: 'a'.repeat(1001) })
+      }
+    } finally { await f.adapter.disconnect() }
+  })
+  it('updates a verified sent reference after reconnect without a new chat event', async () => {
+    const f = await connected()
+    try {
+      await f.gateway.emit(payload())
+      const message = { blocks: [{ kind: 'card' as const, title: 't', body: 'open' }] }
+      const ref = await f.adapter.send({ chatId: 'oc_chat', deliveryKey: 'recover-original' }, message)
+      expect(ref).toMatchObject({ accountId: 'cli_synthetic', chatType: 'dm' })
       await f.adapter.disconnect()
-    }
+      await expect(f.adapter.update(ref, { blocks: [{ kind: 'text', markdown: 'closed' }] })).rejects.toThrow('TARGET_UNCONFIRMED')
+      await f.adapter.connect({ credentials: { appId: 'cli_synthetic', appSecret: 'synthetic' }, signal: f.stop.signal, onEvent() {}, log: { info() {}, warn() {}, error() {} } })
+      const target = { chatId: ref.chatId, accountId: ref.accountId, chatType: ref.chatType, deliveryKey: 'recover-original' }
+      await expect(f.adapter.send({ ...target, accountId: 'wrong' }, message)).rejects.toThrow('TARGET_UNCONFIRMED')
+      await expect(f.adapter.send({ ...target, accountId: undefined }, message)).rejects.toThrow('TARGET_UNCONFIRMED')
+      await f.adapter.send(target, message)
+      expect(f.gateway.sentCards).toHaveLength(2)
+      expect(f.gateway.sentCards.at(-1)?.uuid).toBe(f.gateway.sentCards.at(0)?.uuid)
+      await f.adapter.update(ref, { blocks: [{ kind: 'text', markdown: 'closed' }] })
+      expect(f.gateway.updatedCards.at(-1)).toMatchObject({ messageId: ref.messageId, card: { body: { elements: [{ content: 'closed' }] } } })
+      await expect(f.adapter.update({ ...ref, accountId: 'wrong' }, { blocks: [{ kind: 'text', markdown: 'x' }] })).rejects.toThrow('TARGET_UNCONFIRMED')
+      await expect(f.adapter.update({ chatId: ref.chatId, messageId: ref.messageId }, { blocks: [{ kind: 'text', markdown: 'x' }] })).rejects.toThrow('TARGET_UNCONFIRMED')
+    } finally { await f.adapter.disconnect() }
+  })
+  it('combines suggested and free-text selections without duplicates', async () => {
+    const f = await connected()
+    try {
+      await f.gateway.emit(payload())
+      await f.adapter.send({ chatId: 'oc_chat' }, { blocks: [{ kind: 'surface', sessionId: 's', surfaceId: 'ui', revision: 1, title: '问题', fallbackUrl: 'https://agh.invalid', form: { state: 'open', actionId: 'submit', submitLabel: '提交', fields: [
+        { kind: 'single', name: 'one', inputKey: 'form', binding: 'input', label: '单选', required: true, allowFreeText: true, options: [{ value: 'a', label: 'A' }] },
+        { kind: 'multi', name: 'many', inputKey: 'form', binding: 'input', label: '多选', required: true, allowFreeText: true, options: [{ value: 'b', label: 'B' }] },
+      ] } }] })
+      const card = f.gateway.sentCards[0]!.card as { body: { elements: Array<{ tag: string; elements?: Array<{ tag: string; behaviors?: Array<{ value: unknown }> }> }> } }
+      const elements = card.body.elements.find((e) => e.tag === 'form')!.elements!
+      expect(elements.map((e) => e.tag)).toEqual(['select_static', 'input', 'multi_select_static', 'input', 'button'])
+      expect(JSON.stringify(card)).toContain('1000')
+      expect(JSON.stringify(card)).toContain('https://agh.invalid')
+      expect(elements[1]).toMatchObject({ max_length: 1000 })
+      expect(elements[3]).toMatchObject({ max_length: 1000 })
+      const callback = cardClick(elements[4]!.behaviors![0]!.value)
+      Object.assign(callback.action, { form_value: { f0: 'a', x0: 'custom', f1: ['b'], x1: 'b\nc' } })
+      await f.gateway.emitCard(callback)
+      expect(f.adapter.onSurfaceAction(f.clicks[0]!)?.input).toEqual({ form: { one: 'custom', many: ['b', 'c'] } })
+    } finally { await f.adapter.disconnect() }
   })
   it('refuses a card above the declared card byte limit', async () => {
     const f = await connected()

@@ -45,6 +45,8 @@ function fixture(
               'content-length': String(options.limit ? 100000 : png.length),
             },
           })
+    if (url.includes('/messages/') && (init?.method === 'PATCH' || init?.method === 'PUT'))
+      return Response.json(options.apiError ? { code: 999 } : { code: 0, data: {} })
     if (url.includes('/messages?'))
       return Response.json(
         options.apiError
@@ -274,4 +276,24 @@ it('registers message and card.action.trigger handlers and answers a card callba
   expect(Object.keys(handlers).sort()).toEqual(['card.action.trigger', 'im.message.receive_v1'])
   await expect(handlers['card.action.trigger']({ operator: {} })).resolves.toEqual({})
   expect(seen).toEqual([{ operator: {} }])
+})
+
+it('edits cards and posts with authenticated encoded message ids and fails on API errors', async () => {
+  const f = fixture()
+  await f.start()
+  const card = { schema: '2.0', config: { update_multi: true }, body: { elements: [] } }
+  await f.gateway.updateCard('om/1', card)
+  const patch = f.calls.at(-1)!
+  expect(patch.url).toContain('/messages/om%2F1')
+  expect(patch.init.method).toBe('PATCH')
+  expect(JSON.parse(JSON.parse(patch.init.body as string).content)).toEqual(card)
+  await f.gateway.updateText('om/2', 'hello')
+  expect(f.calls.at(-1)!.init.method).toBe('PUT')
+  expect(JSON.parse(f.calls.at(-1)!.init.body as string)).toMatchObject({ msg_type: 'post' })
+  await f.gateway.stop()
+  await expect(f.gateway.updateCard('om/1', card)).rejects.toThrow('NOT_CONNECTED')
+  const bad = fixture({ apiError: true })
+  await bad.start()
+  await expect(bad.gateway.updateCard('om/1', card)).rejects.toThrow('API')
+  await bad.gateway.stop()
 })

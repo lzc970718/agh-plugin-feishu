@@ -244,6 +244,20 @@ export class RealGateway implements Gateway {
   sendCard(chatId: string, card: Record<string, unknown>, uuid: string) {
     return this.create(chatId, 'interactive', card, uuid)
   }
+  async updateText(messageId: string, markdown: string) {
+    if (!this.ready) throw new FeishuError('NOT_CONNECTED')
+    if (!messageId || messageId === '.' || messageId === '..') throw new FeishuError('RESPONSE')
+    await this.json(`/open-apis/im/v1/messages/${encodeURIComponent(messageId)}`, 'PUT', {
+      msg_type: 'post', content: JSON.stringify({ zh_cn: { content: [[{ tag: 'md', text: markdown }]] } }),
+    })
+  }
+  async updateCard(messageId: string, card: Record<string, unknown>) {
+    if (!this.ready) throw new FeishuError('NOT_CONNECTED')
+    if (!messageId || messageId === '.' || messageId === '..') throw new FeishuError('RESPONSE')
+    await this.json(`/open-apis/im/v1/messages/${encodeURIComponent(messageId)}`, 'PATCH', {
+      content: JSON.stringify(card),
+    })
+  }
   private async create(chatId: string, type: 'post' | 'interactive', content: unknown, uuid: string) {
     if (!this.ready) throw new FeishuError('NOT_CONNECTED')
     const result = await this.json('/open-apis/im/v1/messages?receive_id_type=chat_id', 'POST', {

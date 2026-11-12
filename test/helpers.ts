@@ -26,6 +26,7 @@ export class FakeGateway implements Gateway {
   handler: ((raw: unknown) => Promise<void>) | undefined
   cardHandler: ((raw: unknown) => Promise<void>) | undefined
   sentCards: { chatId: string; card: Record<string, unknown>; uuid: string }[] = []
+  updatedCards: { messageId: string; card: Record<string, unknown> }[] = []
   downloads = new Map<string, { bytes: Uint8Array; mime: string } | Error>()
   sent: { chatId: string; text: string; uuid: string }[] = []
   async start(
@@ -57,6 +58,10 @@ export class FakeGateway implements Gateway {
   async sendCard(chatId: string, card: Record<string, unknown>, uuid: string) {
     this.sentCards.push({ chatId, card, uuid })
     return 'om_card_' + this.sentCards.length
+  }
+  async updateText(_messageId: string, _markdown: string) {}
+  async updateCard(messageId: string, card: Record<string, unknown>) {
+    this.updatedCards.push({ messageId, card })
   }
   async emitCard(raw: unknown) {
     await this.cardHandler?.(raw)

@@ -136,3 +136,12 @@ describe('Feishu event normalization', () => {
     expect(normalizeCardAction(cardClick(value))).toBeNull()
   })
 })
+
+it('bounds submitted form values and requires a callback event id for platform decisions', () => {
+  const click = cardClick({ id: 'surface:payload', t: 'dm', c: 'oc_chat' })
+  const valid = { ...click, action: { ...click.action, form_value: { f0: '你好\n世界', f1: ['a', 'b'] } } }
+  expect(normalizeCardAction(valid)?.formValues).toEqual({ f0: '你好\n世界', f1: ['a', 'b'] })
+  expect(normalizeCardAction({ ...valid, event_id: undefined })).toBeNull()
+  expect(normalizeCardAction({ ...valid, action: { ...valid.action, form_value: { f0: ['x'.repeat(10001)] } } })).toBeNull()
+  expect(normalizeCardAction({ ...valid, action: { ...valid.action, form_value: { f0: { injected: true } } } })).toBeNull()
+})

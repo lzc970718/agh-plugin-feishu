@@ -8,7 +8,7 @@ English | [简体中文](README.zh-CN.md)
 
 ## Requirements
 
-AGH contract version >=0.1.0 **with the unified channel bridge and Extension API ^5.13.0**, and Node.js >=24.10. The AGH contract version alone does not establish channel-bridge support; the plugin API range is checked during installation. This is an independent plugin, not a bundled Assistant runtime.
+AGH contract version >=0.1.0 **with the unified channel bridge and Extension API ^5.15.0**, and Node.js >=24.10. The AGH contract version alone does not establish channel-bridge support; the plugin API range is checked during installation. This is an independent plugin, not a bundled Assistant runtime.
 
 ## Install
 
@@ -29,7 +29,7 @@ Create and publish a Feishu/Lark application with a bot, enable the message-rece
 3. Send a new message to the configured bot (mention it in supported groups), then refresh the observed chat targets in AGH.
 4. Select and explicitly confirm the target. Only new messages after binding are synchronized. Manage, unbind or move connections from **Plugins → Channels**.
 
-The host owns authorization, credentials, session routing, lifecycle, bindings and delivery receipts. AGH-originated user text is forwarded with a source marker by the bot, not impersonated as a platform user. Native approvals stay in AGH. Replies to a quoted message carry the quoted message id, text is sent as Markdown, and messages with buttons are sent as interactive cards. See the [Chinese guide](README.zh-CN.md) for platform setup, attachment limits, recovery and supported features.
+The host owns authorization, credentials, session routing, lifecycle, bindings and delivery receipts. AGH-originated user text is forwarded with a source marker by the bot, not impersonated as a platform user. With a compatible AGH host, supported questions and offered approval choices appear as interactive cards; the host validates the actor and decision. Settled cards are updated when Feishu permits it. Unsupported questions remain available in AGH. Replies to a quoted message carry the quoted message id, text is sent as Markdown, and messages with buttons are sent as interactive cards. See the [Chinese guide](README.zh-CN.md) for platform setup, attachment limits, recovery and supported features.
 
 ## Development
 
@@ -49,3 +49,5 @@ npm run build
 See [VALIDATION.md](VALIDATION.md) for executed checks and untested environments, [CHANGELOG.md](CHANGELOG.md) for release changes, and [PROVENANCE.md](PROVENANCE.md) for source and icon attribution. Windows has been exercised locally; macOS/Linux and platform-account coverage are described in the validation record, not implied by pure JavaScript packaging.
 
 Apache-2.0. Bundled dependency licenses are retained in [NOTICE](NOTICE). Platform trademarks belong to their respective owners; this independent adapter is not an endorsement by Feishu.
+
+Card callbacks receive `{}` after entering an in-memory queue. This acknowledges transport only, not backend acceptance. If the process crashes before acceptance, the user must retry; a card is shown closed only after backend success. Native text and custom-answer fields allow at most 1,000 characters; use the authenticated AGH link shown on the card for longer answers.

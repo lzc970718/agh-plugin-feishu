@@ -57,7 +57,7 @@ await writeFile(
   JSON.stringify(
     {
       node: process.version,
-      apiRange: '^5.13.0',
+      apiRange: '^5.15.0',
       bridge: 'host-owned',
       sdk: '@larksuiteoapi/node-sdk@1.76.0',
       bundled: [...seen].sort(),
