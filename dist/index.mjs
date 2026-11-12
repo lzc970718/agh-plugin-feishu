@@ -19722,9 +19722,13 @@ function normalize(input, appId, botId) {
     });
   };
   switch (message.message_type) {
-    case "text":
-      texts.push(required(content.text, 6e4));
+    case "text": {
+      const text = content.text;
+      if (typeof text !== "string" || !text.length || text.length > 6e4 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(text))
+        throw new Error("Invalid Feishu text");
+      texts.push(text);
       break;
+    }
     case "image":
       add(content.image_key, "image", "image.png", "application/octet-stream");
       break;
@@ -19793,7 +19797,7 @@ function normalizeCardAction(input) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const object = raw, value = optional(object.id, 1024), chatType = object.t === "dm" || object.t === "group" ? object.t : void 0, cardChatId = optional(object.c, 256);
   if (!value) return null;
-  const time = Number(data.create_time ?? envelope.create_time ?? header.create_time);
+  const time = Number(data.create_time ?? envelope.create_time ?? header.create_time) / 1e3;
   return {
     eventId: optional(data.event_id ?? envelope.event_id ?? header.event_id ?? data.token, 512) ?? `card:${messageId}:${userId}:${value}`,
     chatId,

@@ -83,9 +83,18 @@ export function normalize(input: unknown, appId: string, botId: string): Incomin
     })
   }
   switch (message.message_type) {
-    case 'text':
-      texts.push(required(content.text, 60000))
+    case 'text': {
+      const text = content.text
+      if (
+        typeof text !== 'string' ||
+        !text.length ||
+        text.length > 60000 ||
+        /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(text)
+      )
+        throw new Error('Invalid Feishu text')
+      texts.push(text)
       break
+    }
     case 'image':
       add(content.image_key, 'image', 'image.png', 'application/octet-stream')
       break
@@ -176,7 +185,7 @@ export function normalizeCardAction(input: unknown): CardClick | null {
     chatType = object.t === 'dm' || object.t === 'group' ? object.t : undefined,
     cardChatId = optional(object.c, 256)
   if (!value) return null
-  const time = Number(data.create_time ?? envelope.create_time ?? header.create_time)
+  const time = Number(data.create_time ?? envelope.create_time ?? header.create_time) / 1000
   return {
     eventId:
       optional(data.event_id ?? envelope.event_id ?? header.event_id ?? data.token, 512) ??

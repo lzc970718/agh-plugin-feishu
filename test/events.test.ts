@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { normalize, normalizeCardAction, safeName } from '../src/events.js'
 import { cardClick, payload } from './helpers.js'
 describe('Feishu event normalization', () => {
@@ -30,6 +30,7 @@ describe('Feishu event normalization', () => {
         eventId: 'om_message',
         messageId: 'om_message',
         accountId: 'cli_app',
+        at: '2025-10-09T08:53:20.000Z',
         chat: { id: 'oc_chat', type: 'dm' },
         sender: { userId: 'ou_user' },
       })
@@ -43,25 +44,32 @@ describe('Feishu event normalization', () => {
       ).toEqual(result)
     },
   )
-  it('only strips verified bot mentions and preserves mentions of other users', () => {
-    const raw = payload('text', { text: '@_user_1 hello @_user_2' }, true)
-    raw.message.mentions = [
-      { key: '@_user_1', id: { open_id: 'ou_bot' } },
-      { key: '@_user_2', id: { open_id: 'ou_other' } },
-    ] as never
-    const result = normalize(raw, 'app', 'ou_bot')!
-    expect(result.event.text).toBe('hello @_user_2')
-    expect(result.event.mentions.bot).toBe(true)
-    expect(
-      normalize(payload('text', { text: '@bot hello' }, true), 'app', 'ou_bot')?.event.mentions.bot,
-    ).toBe(false)
-  })
+  it.each(['hello', '第一行\n第二行', '第一行\r\n第二行', '名称\t内容'])(
+    'only strips verified bot mentions and preserves message text %j and other users',
+    (text) => {
+      const raw = payload('text', { text: `@_user_1 ${text} @_user_2` }, true)
+      raw.message.mentions = [
+        { key: '@_user_1', id: { open_id: 'ou_bot' } },
+        { key: '@_user_2', id: { open_id: 'ou_other' } },
+      ] as never
+      const result = normalize(raw, 'app', 'ou_bot')!
+      expect(result.event.text).toBe(`${text} @_user_2`)
+      expect(result.event.mentions.bot).toBe(true)
+      expect(
+        normalize(payload('text', { text: '@bot hello' }, true), 'app', 'ou_bot')?.event.mentions.bot,
+      ).toBe(false)
+    },
+  )
   it('refuses application senders and malformed identities, content or timestamps', () => {
     const bot = payload()
     bot.sender.sender_type = 'app'
     expect(normalize(bot, 'app', 'bot')).toBeNull()
     for (const raw of [
       {},
+      ...[null, 7, '', 'x'.repeat(60001), 'bad\u0000text', 'bad\u000btext', 'bad\u007ftext'].map((text) => payload('text', { text })),
+      ...['bad\nidentity', 'bad\ridentity', 'bad\tidentity'].map((open_id) => ({
+        ...payload(), sender: { sender_type: 'user', sender_id: { open_id } },
+      })),
       { ...payload(), message: { ...payload().message, create_time: 'bad' } },
       { ...payload(), message: { ...payload().message, content: '[]' } },
       { ...payload(), sender: { sender_type: 'user', sender_id: { open_id: '' } } },
@@ -101,18 +109,28 @@ describe('Feishu event normalization', () => {
       value: 'pick:1',
       chatType: 'dm',
       eventId: 'ev_click',
+      at: '2026-11-12T05:44:46.906Z',
     }
-    expect(normalizeCardAction(cardClick())).toMatchObject(expected)
+    expect(normalizeCardAction({ ...cardClick(), create_time: '1794462286906375' })).toMatchObject(expected)
     const flat = cardClick()
     expect(
       normalizeCardAction({
         schema: '2.0',
-        header: { event_id: 'ev_click', event_type: 'card.action.trigger', create_time: '1760000000000' },
+        header: { event_id: 'ev_click', event_type: 'card.action.trigger', create_time: '1794462286906375' },
         event: { operator: flat.operator, action: flat.action, context: flat.context },
       }),
     ).toMatchObject(expected)
     expect(normalizeCardAction(cardClick({ id: 'x', t: 'dm', c: 'oc_chat' }))).toMatchObject({ cardChatId: 'oc_chat' })
     expect(normalizeCardAction(cardClick({ id: 'x', t: 'dm', c: 'a'.repeat(300) }))).not.toHaveProperty('cardChatId')
+  })
+  it.each([undefined, 'bad', '0', '-1', '1e30'])('uses the current time for invalid card timestamp %j', (create_time) => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2026-11-12T05:44:46.000Z'))
+      expect(normalizeCardAction({ ...cardClick(), create_time })?.at).toBe('2026-11-12T05:44:46.000Z')
+    } finally {
+      vi.useRealTimers()
+    }
   })
   it.each([{}, { id: '' }, { id: 5 }, 7, null, 'plain-id'])('drops a card click with an unusable value %j', (value) => {
     expect(normalizeCardAction(cardClick(value))).toBeNull()

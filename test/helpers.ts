@@ -15,7 +15,7 @@ export const cardClick = (value: unknown = { id: 'pick:1', t: 'dm' }, chat = 'oc
   schema: '2.0',
   event_type: 'card.action.trigger',
   event_id: 'ev_click',
-  create_time: '1760000000000',
+  create_time: '1760000000000000',
   operator: { open_id: 'ou_user' },
   token: 'c-token',
   action: { tag: 'button', value },

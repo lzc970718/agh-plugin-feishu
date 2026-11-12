@@ -110,7 +110,8 @@ describe('managed Feishu provider and adapter', () => {
     const a = await connected(),
       b = await connected()
     const old = a.gateway.handler!
-    await a.gateway.emit(payload())
+    await a.gateway.emit(payload('text', { text: '请调用 ask_owner\n1. 红色\n2. 蓝色' }))
+    expect(a.events.map((event) => event.text)).toEqual(['请调用 ask_owner\n1. 红色\n2. 蓝色'])
     expect(b.events).toHaveLength(0)
     await a.adapter.disconnect()
     await old(payload())

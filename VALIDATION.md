@@ -57,3 +57,26 @@ Real-tenant checks still open:
 - Confirm a schema 2.0 card with a header-less layout and callback buttons renders, that a click reaches AGH, and that the `{}` reply shows no error toast and leaves the card unchanged.
 - Confirm the callback `context.open_message_id` equals the `message_id` returned by the send call, and check click behavior after a reconnect and after clicking an already-answered card.
 - Check the 30000-byte card limit and rate limits with real traffic.
+
+## Multiline inbound text regression (2026-11-12)
+
+Incoming text reused the identifier validator, which rejected LF, CR and tabs. The adapter then logged an invalid inbound event and emitted nothing, even though the SDK had acknowledged the callback. Text now permits LF, CR and tabs while retaining the nonempty/60000-character limit and rejecting other C0 controls and DEL. Identity fields retain their existing strict validator.
+
+Verified on macOS with Node v24.20.0 and pnpm 10.34.5 through the Harness toolchain entry, in an isolated plugin checkout:
+
+- Before the fix: three normalization cases (LF, CRLF, tab) failed with `Invalid Feishu field`; the adapter regression delivered no event for a multiline `ask_owner` prompt.
+- `exec vitest run --maxWorkers=1`: all 3 files / 62 tests passed after the fix, including malformed text and identity rejection.
+- `run build`: passed; the rebuilt portable runtime differs only in text validation and contains no temporary diagnostics.
+- `run typecheck`: blocked by existing local SDK declaration mismatches (`ChannelProvider`, `registerChannel` and related exports). Repeating with the original source/tests produced the same errors; this is not a passing typecheck.
+
+A subsequent real Feishu DM test passed. The multiline prompt created a task, `ask_owner` sent the two-choice card, and clicking the second option resumed and completed the same task. The reply delivery record reported success. Quoted replies and broader platform acceptance remain separate checks.
+
+## Card callback timestamp regression (2026-11-12)
+
+Feishu specifies `card.action.trigger` header `create_time` in microseconds. See the [button callback example](https://open.larkenterprise.com/document/feishu-cards/card-json-v2-components/interactive-components/button). The adapter had passed it to JavaScript `Date` as milliseconds, producing a far-future click time. It now converts card callback times to milliseconds; message timestamps continue to use milliseconds.
+
+On macOS with Node v24.20.0 and pnpm 10.34.5 through the Harness toolchain entry, the isolated checkout reproduced the incorrect `+058834-03-31T10:21:46.375Z` for `1794462286906375`. After the fix, SDK-flattened and nested callbacks both yield `2026-11-12T05:44:46.906Z`; invalid and missing times retain the current-time fallback. All 3 test files / 67 tests passed and the standalone runtime build passed. The existing local SDK declaration mismatch still prevents a passing typecheck as recorded above.
+
+A synthetic replay through the built provider adapter, with only the network gateway replaced, confirmed both callback shapes and ordinary message milliseconds on the emitted events. This replay does not connect to Feishu.
+
+The rebuilt plugin was installed locally and reported running. The channel reconnected with its pairing retained, and the companion health check passed. A new real button click after this timestamp fix remains unverified. Existing persisted timestamps were not migrated.
