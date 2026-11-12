@@ -19655,7 +19655,7 @@ var require_minimal2 = __commonJS({
 });
 
 // src/channel.json
-var channel_default = { id: "feishu", displayName: "\u98DE\u4E66", version: "0.1.3", connection: { modes: ["websocket"], default: "websocket" }, capabilities: { edit: false, card: false, thread: false, attachment: true, reactions: false, typing: false, voice: true }, credentials: { required: ["appId", "appSecret"], optional: [], exposes: [] }, limits: { textChars: 8e3, cardBytes: 3e4, editWindowMs: 0, rate: { perChatPerMin: 20, perAccountPerSec: 10 } }, events: { supported: ["message"] }, displayNames: { en: "Feishu", "zh-CN": "\u98DE\u4E66" }, icon: "data:image/png;base64,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" };
+var channel_default = { id: "feishu", displayName: "\u98DE\u4E66", version: "0.1.3", connection: { modes: ["websocket"], default: "websocket" }, capabilities: { edit: false, card: true, thread: false, attachment: true, reactions: false, typing: false, voice: true }, credentials: { required: ["appId", "appSecret"], optional: [], exposes: [] }, limits: { textChars: 8e3, cardBytes: 3e4, editWindowMs: 0, rate: { perChatPerMin: 20, perAccountPerSec: 10 } }, events: { supported: ["message", "cardAction"] }, displayNames: { en: "Feishu", "zh-CN": "\u98DE\u4E66" }, icon: "data:image/png;base64,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" };
 
 // src/adapter.ts
 import { createHash as createHash2, randomUUID } from "node:crypto";
@@ -19673,6 +19673,13 @@ function required(value, max = 256) {
   if (typeof value !== "string" || !value.length || value.length > max || /[\u0000-\u001f\u007f]/u.test(value))
     throw new Error("Invalid Feishu field");
   return value;
+}
+function optional(value, max) {
+  try {
+    return required(value, max);
+  } catch {
+    return void 0;
+  }
 }
 function safeName(value, fallback) {
   const source = typeof value === "string" ? value.replaceAll("\\", "/").split("/").at(-1) : void 0;
@@ -19758,6 +19765,7 @@ function normalize(input, appId, botId) {
   }
   const time = Number(message.create_time);
   if (!Number.isFinite(time) || time < 0 || time > 864e13) throw new Error("Invalid Feishu time");
+  const quoted = optional(message.parent_id, 512);
   return {
     event: {
       kind: "message",
@@ -19769,9 +19777,32 @@ function normalize(input, appId, botId) {
       sender: { userId: user, raw: {} },
       text: strip(texts.join("\n")).trim(),
       attachments: [],
-      mentions: { bot: botMentions.length > 0, replyToBot: false, quoteBot: false }
+      mentions: { bot: botMentions.length > 0, replyToBot: false, quoteBot: false },
+      ...quoted ? { quotedMessageId: quoted } : {}
     },
     media
+  };
+}
+function normalizeCardAction(input) {
+  const envelope = record(input), data = record(envelope.event ?? envelope);
+  const header = envelope.header && typeof envelope.header === "object" ? record(envelope.header) : {};
+  const context = data.context ? record(data.context) : {};
+  const messageId = optional(context.open_message_id ?? data.open_message_id, 512), chatId = optional(context.open_chat_id ?? data.open_chat_id, 256), userId = optional(record(data.operator ?? {}).open_id, 256);
+  if (!messageId || !chatId || !userId) return null;
+  const raw = record(data.action ?? {}).value;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const object = raw, value = optional(object.id, 1024), chatType = object.t === "dm" || object.t === "group" ? object.t : void 0, cardChatId = optional(object.c, 256);
+  if (!value) return null;
+  const time = Number(data.create_time ?? envelope.create_time ?? header.create_time);
+  return {
+    eventId: optional(data.event_id ?? envelope.event_id ?? header.event_id ?? data.token, 512) ?? `card:${messageId}:${userId}:${value}`,
+    chatId,
+    messageId,
+    userId,
+    value,
+    ...chatType ? { chatType } : {},
+    ...cardChatId ? { cardChatId } : {},
+    at: new Date(Number.isFinite(time) && time > 0 && time < 864e13 ? time : Date.now()).toISOString()
   };
 }
 var segment = (value) => createHash("sha256").update(value).digest("hex");
@@ -19800,6 +19831,22 @@ function mediaFailure(error) {
   return `${known[error.reason] ?? "\u9644\u4EF6\u4E0B\u8F7D\u5931\u8D25"}\uFF08${Object.hasOwn(known, error.reason) ? error.reason : "DOWNLOAD_FAILED"}${error.status ? ` ${error.status}` : ""}\uFF09`;
 }
 
+// src/markdown.ts
+var LINK = /(!?)\[([^\[\]]*)\]\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g;
+var ANGLED = /^<([^<>\n]*)>/;
+var TAG = /<(?=[A-Za-z/])(?!https?:\/\/)/gi;
+var LINK_SEQUENCE = /\]([(\[:])/g;
+function neutralizeMarkdown(text) {
+  return text.replace(LINK, (_all, _bang, label, body) => {
+    const inside = body.trim();
+    const url2 = (ANGLED.exec(inside)?.[1] ?? inside.split(/\s/, 1)[0] ?? "").trim();
+    const shown = label.trim();
+    if (!url2) return shown;
+    if (!shown || shown === url2) return url2;
+    return `${shown}\uFF08${url2}\uFF09`;
+  }).replace(LINK_SEQUENCE, "]\u200B$1").replace(TAG, "<\u200B");
+}
+
 // src/adapter.ts
 var FeishuAdapter = class {
   constructor(manifest, gateway, domain = "feishu") {
@@ -19819,7 +19866,7 @@ var FeishuAdapter = class {
   tail = Promise.resolve();
   queued = 0;
   connecting;
-  chats = /* @__PURE__ */ new Set();
+  chats = /* @__PURE__ */ new Map();
   async connect(options) {
     await this.disconnect();
     options.signal.throwIfAborted();
@@ -19840,8 +19887,9 @@ var FeishuAdapter = class {
       this.connecting = this.gateway.start(
         { appId, appSecret },
         this.domain,
-        (raw) => this.receive(raw, epoch),
-        this.abort.signal
+        (raw) => this.receive(raw, epoch, (value) => this.deliver(value, epoch)),
+        this.abort.signal,
+        (raw) => this.receive(raw, epoch, (value) => this.deliverCardAction(value, epoch))
       );
       const info = await this.connecting;
       if (epoch !== this.epoch || options.signal.aborted) throw new FeishuError("CANCELLED");
@@ -19867,7 +19915,7 @@ var FeishuAdapter = class {
     await this.tail;
     this.connecting = void 0;
   }
-  receive(raw, epoch) {
+  receive(raw, epoch, process2) {
     if (epoch !== this.epoch) return Promise.resolve();
     if (this.queued >= 64) throw new FeishuError("QUEUE_LIMIT");
     this.queued++;
@@ -19878,7 +19926,7 @@ var FeishuAdapter = class {
       } catch {
         return;
       }
-      await this.deliver(raw, epoch);
+      await process2(raw);
     }).finally(() => {
       this.queued--;
     });
@@ -19923,10 +19971,43 @@ var FeishuAdapter = class {
     if (failed.length)
       event.text += "\n[\u98DE\u4E66\u9644\u4EF6\u672A\u80FD\u540C\u6B65\uFF1A" + failed.join("\uFF1B") + "\u3002\u8BF7\u68C0\u67E5\u5E94\u7528\u6743\u9650\u3001\u7F51\u7EDC\u6216\u6587\u4EF6\u5927\u5C0F\u540E\u91CD\u53D1\u3002]";
     if (epoch !== this.epoch || !this.options) return;
-    if (this.chats.size >= 1024 && !this.chats.has(event.chat.id))
-      this.chats.delete(this.chats.values().next().value);
-    this.chats.add(event.chat.id);
+    this.confirm(event.chat.id, event.chat.type);
     this.options.onEvent(event);
+  }
+  confirm(chatId, type) {
+    if (this.chats.size >= 1024 && !this.chats.has(chatId)) this.chats.delete(this.chats.keys().next().value);
+    this.chats.set(chatId, type);
+  }
+  async deliverCardAction(raw, epoch) {
+    if (epoch !== this.epoch || !this.options || !this.connected) return;
+    let click;
+    try {
+      click = normalizeCardAction(raw);
+    } catch {
+      this.options.log.warn("Feishu invalid card callback");
+      return;
+    }
+    if (!click) return;
+    if (click.cardChatId !== click.chatId) {
+      this.options.log.warn("Feishu card callback from a chat other than the card chat");
+      return;
+    }
+    const type = this.chats.get(click.chatId) ?? click.chatType;
+    if (!type) {
+      this.options.log.warn("Feishu card callback from an unknown chat type");
+      return;
+    }
+    this.confirm(click.chatId, type);
+    this.options.onEvent({
+      kind: "cardAction",
+      eventId: click.eventId,
+      accountId: this.appId,
+      at: click.at,
+      chat: { id: click.chatId, type },
+      sender: { userId: click.userId, raw: {} },
+      cardBizId: click.messageId,
+      value: click.value
+    });
   }
   toSession(event, context) {
     if (event.kind !== "message") return null;
@@ -19987,46 +20068,113 @@ var FeishuAdapter = class {
   onApprovalAction(_event) {
     return null;
   }
+  onSlotAction(event) {
+    if (event.kind !== "cardAction") return null;
+    const match = /^slot:(\d+):(.+)$/.exec(event.value);
+    const requestSeq = Number(match?.[1]);
+    if (!match || !Number.isSafeInteger(requestSeq) || requestSeq < 1 || match[2].length > 128) return null;
+    return { requestSeq, actionId: match[2], credential: this.credentialOf(event) };
+  }
   async update(_reference, _message) {
     throw new FeishuError("EDIT_UNSUPPORTED");
   }
   async send(target, message) {
-    if (!this.connected || !this.gateway.ready || !this.chats.has(target.chatId))
-      throw new FeishuError("TARGET_UNCONFIRMED");
+    const type = this.chats.get(target.chatId);
+    if (!this.connected || !this.gateway.ready || !type) throw new FeishuError("TARGET_UNCONFIRMED");
     const epoch = this.epoch;
-    const text = message.blocks.map((block) => {
-      switch (block.kind) {
-        case "text":
-          return block.markdown;
-        case "link":
-          return block.title + " " + block.url;
-        case "file":
-          return block.name + "\uFF08\u8BF7\u5728 AGH \u4E2D\u67E5\u770B\uFF09";
-        case "table":
-          return [
-            block.title ?? "",
-            block.columns.join(" | "),
-            ...block.rows.map((row) => row.join(" | "))
-          ].join("\n");
-        case "card":
-          return block.title + "\n" + block.body;
-        case "approval":
-          return "\u8BF7\u5728 AGH \u4E2D\u5904\u7406\u5BA1\u6279\u3002";
+    let sequence = 0, last = "", cardId = "";
+    const key = target.deliveryKey ?? randomUUID();
+    const uuidOf = (part) => createHash2("sha256").update(JSON.stringify([key, sequence++, part])).digest("hex").slice(0, 48);
+    const settled = () => {
+      if (epoch !== this.epoch) throw new FeishuError("CANCELLED");
+    };
+    let run = [];
+    const flush = async () => {
+      const chars = [...neutralizeMarkdown(run.filter(Boolean).join("\n\n"))];
+      run = [];
+      for (let index = 0; index < chars.length; index += 8e3) {
+        settled();
+        const part = chars.slice(index, index + 8e3).join("");
+        last = await this.gateway.send(target.chatId, part, uuidOf(part));
+        settled();
       }
-    }).filter(Boolean).join("\n\n");
-    if (!text) throw new FeishuError("EMPTY_MESSAGE");
-    const chars = [...text];
-    let result = "";
-    for (let index = 0; index < chars.length; index += 8e3) {
-      if (epoch !== this.epoch) throw new FeishuError("CANCELLED");
-      const part = chars.slice(index, index + 8e3).join("");
-      const uuid = createHash2("sha256").update(JSON.stringify([target.deliveryKey ?? randomUUID(), index, part])).digest("hex").slice(0, 48);
-      result = await this.gateway.send(target.chatId, part, uuid);
-      if (epoch !== this.epoch) throw new FeishuError("CANCELLED");
+    };
+    for (const block of message.blocks) {
+      if (block.kind !== "card") {
+        run.push(blockText(block));
+        continue;
+      }
+      await flush();
+      const card = cardPayload(block, type, target.chatId);
+      if (!card) continue;
+      if (new TextEncoder().encode(JSON.stringify(card)).length > this.manifest.limits.cardBytes)
+        throw new FeishuError("TOO_LARGE");
+      settled();
+      last = cardId = await this.gateway.sendCard(target.chatId, card, uuidOf(JSON.stringify(card)));
+      settled();
     }
-    return { chatId: target.chatId, messageId: result };
+    await flush();
+    if (!last) throw new FeishuError("EMPTY_MESSAGE");
+    return { chatId: target.chatId, messageId: cardId || last };
   }
 };
+function blockText(block) {
+  switch (block.kind) {
+    case "text":
+      return block.markdown;
+    case "link":
+      return block.title + " " + block.url;
+    case "file":
+      return block.name + "\uFF08\u8BF7\u5728 AGH \u4E2D\u67E5\u770B\uFF09";
+    case "table":
+      return [block.title ? `\u3010${block.title}\u3011` : "", block.columns.join(" | "), ...block.rows.map((row) => row.join(" | "))].filter(Boolean).join("\n");
+    case "approval": {
+      const lines = [`\u3010${block.title}\u3011`, block.summary, `\u98CE\u9669\uFF1A${block.risk}`];
+      if (block.expiresAt) lines.push(`\u622A\u6B62\uFF1A${block.expiresAt}`);
+      const key = approvalKey(block);
+      if (key) lines.push(`\u56DE\u590D\u300C\u540C\u610F ${key}\u300D\u6216\u300C\u62D2\u7EDD ${key}\u300D`);
+      return lines.join("\n");
+    }
+  }
+}
+function approvalKey(block) {
+  if (block.decisionKey) {
+    try {
+      const id = block.decisionKey.split("/").map(decodeURIComponent)[1];
+      return id?.slice(0, 6);
+    } catch {
+      return void 0;
+    }
+  }
+  return block.requestSeq === void 0 ? void 0 : `#${block.requestSeq}`;
+}
+var BUTTON_TYPE = { primary: "primary", danger: "danger" };
+function cardPayload(block, chatType, chatId) {
+  const markdown = [block.body, ...(block.fields ?? []).map(([name, value]) => `**${name}**: ${value}`)].filter(Boolean).join("\n");
+  const elements = markdown ? [{ tag: "markdown", content: neutralizeMarkdown(markdown) }] : [];
+  for (const action of block.actions ?? [])
+    elements.push({
+      tag: "button",
+      text: { tag: "plain_text", content: action.label },
+      type: (action.style && BUTTON_TYPE[action.style]) ?? "default",
+      behaviors: [
+        {
+          type: "callback",
+          value: {
+            id: block.requestSeq === void 0 ? action.id : `slot:${block.requestSeq}:${action.id}`,
+            t: chatType,
+            c: chatId
+          }
+        }
+      ]
+    });
+  if (!block.title && !elements.length) return null;
+  return {
+    schema: "2.0",
+    ...block.title ? { header: { title: { tag: "plain_text", content: block.title } } } : {},
+    body: { elements }
+  };
+}
 
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
@@ -27999,14 +28147,16 @@ var sdkSocket = (options) => {
     onReconnected: options.onReconnected
   });
   return {
-    start: (handler) => ws.start({
-      eventDispatcher: new EventDispatcher({}).register({
-        "im.message.receive_v1": queuedMessageHandler(handler)
-      })
-    }),
+    start: (handler, onCardAction) => ws.start({ eventDispatcher: new EventDispatcher({}).register(sdkHandlers(handler, onCardAction)) }),
     close: () => ws.close({ force: true })
   };
 };
+function sdkHandlers(handler, onCardAction) {
+  return {
+    "im.message.receive_v1": queuedMessageHandler(handler),
+    "card.action.trigger": queuedMessageHandler(onCardAction)
+  };
+}
 function queuedMessageHandler(handler) {
   return async (raw) => {
     const pending = handler(raw);
@@ -28033,7 +28183,7 @@ var RealGateway = class {
   tokenRequest;
   removeAbort;
   rejectStart;
-  async start(credentials, domain, onMessage, signal) {
+  async start(credentials, domain, onMessage, signal, onCardAction) {
     await this.stop();
     signal.throwIfAborted();
     this.abort = new AbortController();
@@ -28085,10 +28235,16 @@ var RealGateway = class {
               if (version === this.version) this.ready = true;
             }
           });
-          void this.socket.start((raw) => {
-            if (version === this.version && !this.abort.signal.aborted) return onMessage(raw);
-            return Promise.resolve();
-          }).catch(fail);
+          void this.socket.start(
+            (raw) => {
+              if (version === this.version && !this.abort.signal.aborted) return onMessage(raw);
+              return Promise.resolve();
+            },
+            (raw) => {
+              if (version === this.version && !this.abort.signal.aborted) return onCardAction(raw);
+              return Promise.resolve();
+            }
+          ).catch(fail);
         } catch {
           fail();
         }
@@ -28234,12 +28390,19 @@ var RealGateway = class {
       mime: response.headers.get("content-type")?.split(";")[0]?.trim() || media.mime
     };
   }
-  async send(chatId, text, uuid) {
+  send(chatId, markdown, uuid) {
+    const content = { zh_cn: { content: [[{ tag: "md", text: markdown }]] } };
+    return this.create(chatId, "post", content, uuid);
+  }
+  sendCard(chatId, card, uuid) {
+    return this.create(chatId, "interactive", card, uuid);
+  }
+  async create(chatId, type, content, uuid) {
     if (!this.ready) throw new FeishuError("NOT_CONNECTED");
     const result = await this.json("/open-apis/im/v1/messages?receive_id_type=chat_id", "POST", {
       receive_id: chatId,
-      msg_type: "text",
-      content: JSON.stringify({ text }),
+      msg_type: type,
+      content: JSON.stringify(content),
       uuid
     });
     const data = result.data;
@@ -28269,7 +28432,7 @@ var feishuProvider = {
 var main = {
   inject: ["profileRuntime", "services", "providers"],
   apply(ctx, config = {}) {
-    if (!ctx.profileRuntime.registerChannel) throw new Error("Feishu requires AGH channel bridge API 5.8.0");
+    if (!ctx.profileRuntime.registerChannel) throw new Error("Feishu requires AGH channel bridge API 5.13.0");
     ctx.profileRuntime.registerChannel(feishuProvider, { instances: config.instances ?? [] });
   }
 };
