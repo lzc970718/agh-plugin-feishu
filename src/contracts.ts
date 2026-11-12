@@ -14,4 +14,6 @@ export interface Gateway {
   download(messageId: string, media: Media, maxBytes: number): Promise<{ bytes: Uint8Array; mime: string }>
   send(chatId: string, markdown: string, uuid: string): Promise<string>
   sendCard(chatId: string, card: Record<string, unknown>, uuid: string): Promise<string>
+  updateText(messageId: string, markdown: string): Promise<void>
+  updateCard(messageId: string, card: Record<string, unknown>): Promise<void>
 }

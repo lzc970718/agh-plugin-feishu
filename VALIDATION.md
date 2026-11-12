@@ -80,3 +80,31 @@ On macOS with Node v24.20.0 and pnpm 10.34.5 through the Harness toolchain entry
 A synthetic replay through the built provider adapter, with only the network gateway replaced, confirmed both callback shapes and ordinary message milliseconds on the emitted events. This replay does not connect to Feishu.
 
 The rebuilt plugin was installed locally and reported running. The channel reconnected with its pairing retained, and the companion health check passed. A new real button click after this timestamp fix remains unverified. Existing persisted timestamps were not migrated.
+
+## Native interaction cards (unreleased)
+
+Synthetic local tests cover bounded form callbacks, source identity, native single/multi/text fields, approval choices, shared-card PATCH, post PUT, and API failures. The host remains responsible for authorization, message references, replay and current state. Cards are sent with `update_multi: true`; Feishu limits card updates to 14 days and requires the sending application identity. Text edits have a maximum of 20 edits and an administrator-controlled time window. `reject_always` has no distinct channel verdict and is not presented as a persistent denial.
+
+The source build and tests use Node v24.20.0 and pnpm 10.34.5. All 73 tests across three files pass. The standard `prepareSdk` command resolves declarations built from the modified AGH source checkout, and typecheck passes against those declarations. Real Feishu/Lark tenant, native form rendering, callbacks, approval decisions and cross-client card updates remain to be verified for this change. Earlier live observations above do not verify this change.
+
+Official references: [form container](https://open.feishu.cn/document/feishu-cards/card-json-v2-components/containers/form-container), [update sent card](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/im-v1/message/patch), and [edit message](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/im-v1/message/update).
+
+Callback `{}` acknowledges transport after volatile queue admission, not backend acceptance. A crash before acceptance requires user retry. Closed card state follows backend success, not this acknowledgment. Native text and custom fields are capped at 1,000 characters, with the authenticated AGH fallback shown for longer answers.
+
+## Native selector rejection repair (2026-11-12)
+
+After the authorized AGH runtime update restored managed watches, the existing unanswered task reached
+the real Feishu create-message endpoint. PID-isolated stages showed HTTP 400 and API 230099; the
+sanitized parser response mentioned `select_static`, `label`, and card parsing. This is live evidence,
+unlike the earlier discarded mock API-999 log.
+
+The official JSON 2.0 [single-selector](https://open.feishu.cn/document/feishu-cards/card-json-v2-components/interactive-components/single-select-dropdown-menu)
+and [multi-selector](https://open.feishu.cn/document/feishu-cards/card-json-v2-components/interactive-components/multi-select-dropdown-menu)
+schemas support `placeholder`, not the input component's `label`. Selectors now use that supported field;
+text/free-text inputs retain their labels, bindings and callbacks.
+
+Through the pinned Harness entry on macOS/Node v24.20.0/pnpm 10.34.5: 3 files / 73 tests passed,
+including selector-schema and callback regressions; plugin typecheck and standalone build passed.
+Temporary adapter/gateway file diagnostics and their helper were removed before this clean build.
+Real card delivery references and remaining user-operated callback acceptance are recorded in the
+deployment execution record; deterministic tests alone do not certify client interaction.

@@ -1,5 +1,12 @@
 # Changelog
 
+## Native questions and approvals (unreleased)
+
+- Requires Extension API ^5.15.0 for authenticated native question submission and managed-session interaction routing.
+- Adds bounded native question forms, approval choices and settled card updates. Long answers retain an AGH Web fallback.
+- Keeps verified send context for card edits after reconnect.
+- Fix native selector cards rejected by Feishu JSON 2.0 (API 230099): use `placeholder` rather than the input-only `label` property for single/multi selectors. Text input labels remain unchanged.
+
 ## Unreleased
 
 - Convert card callback timestamps from Feishu's microseconds to milliseconds before reporting the click time.

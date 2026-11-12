@@ -9,7 +9,7 @@
     "default": "websocket"
   },
   "capabilities": {
-    "edit": false,
+    "edit": true,
     "card": true,
     "thread": false,
     "attachment": true,
@@ -28,7 +28,7 @@
   "limits": {
     "textChars": 8000,
     "cardBytes": 30000,
-    "editWindowMs": 0,
+    "editWindowMs": 1209600000,
     "rate": {
       "perChatPerMin": 20,
       "perAccountPerSec": 10
